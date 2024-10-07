@@ -23,7 +23,7 @@ internal class SamplingRuleApplier
         {
             // Until calling GetSamplingTargets, the default is to borrow 1/s if reservoir size is
             // positive.
-            this.ReservoirSampler = new ParentBasedSampler(new RateLimitingSampler(1, this.Clock));
+            this.ReservoirSampler = new RateLimitingSampler(1, this.Clock);
             this.Borrowing = true;
         }
         else
@@ -33,7 +33,7 @@ internal class SamplingRuleApplier
             this.Borrowing = false;
         }
 
-        this.FixedRateSampler = new ParentBasedSampler(new TraceIdRatioBasedSampler(rule.FixedRate));
+        this.FixedRateSampler = new TraceIdRatioBasedSampler(rule.FixedRate);
 
         // We either have no reservoir sampling or borrow until we get a quota so have no end time.
         this.ReservoirEndTime = DateTimeOffset.MaxValue;
@@ -201,7 +201,7 @@ internal class SamplingRuleApplier
     public SamplingRuleApplier WithTarget(SamplingTargetDocument target, DateTimeOffset now)
     {
         Trace.Sampler newFixedRateSampler = target.FixedRate != null
-            ? new ParentBasedSampler(new TraceIdRatioBasedSampler(target.FixedRate.Value))
+            ? new TraceIdRatioBasedSampler(target.FixedRate.Value)
             : this.FixedRateSampler;
 
         Trace.Sampler newReservoirSampler = new AlwaysOffSampler();
@@ -210,7 +210,7 @@ internal class SamplingRuleApplier
         {
             if (target.ReservoirQuota > 0)
             {
-                newReservoirSampler = new ParentBasedSampler(new RateLimitingSampler(target.ReservoirQuota.Value, this.Clock));
+                newReservoirSampler = new RateLimitingSampler(target.ReservoirQuota.Value, this.Clock);
             }
             else
             {
