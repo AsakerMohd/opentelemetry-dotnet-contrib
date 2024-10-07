@@ -3,17 +3,11 @@
 
 #nullable enable
 
-#pragma warning disable IDE0005 // Using directive is unnecessary.
-using System;
-#if NET8_0_OR_GREATER
+#if NET
 using System.Collections.Frozen;
 #endif
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Web;
 using OpenTelemetry.Trace;
-#pragma warning restore IDE0005 // Using directive is unnecessary.
 
 namespace OpenTelemetry.Internal;
 
@@ -27,7 +21,7 @@ internal sealed class RequestDataHelper
 
     private static readonly char[] SplitChars = new[] { ',' };
 
-#if NET8_0_OR_GREATER
+#if NET
     private readonly FrozenDictionary<string, string> knownHttpMethods;
 #else
     private readonly Dictionary<string, string> knownHttpMethods;
@@ -52,7 +46,7 @@ internal sealed class RequestDataHelper
                 ["CONNECT"] = "CONNECT",
             };
 
-#if NET8_0_OR_GREATER
+#if NET
         this.knownHttpMethods = knownMethodSet.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 #else
         this.knownHttpMethods = knownMethodSet;

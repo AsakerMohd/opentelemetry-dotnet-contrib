@@ -7,11 +7,15 @@
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
     <EventSourceSupport>true</EventSourceSupport>
     <SelfContained>true</SelfContained>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Include="$(RepoRoot)\src\Shared\PropertyFetcher.AOT.cs" Link="Includes\PropertyFetcher.AOT.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- System.Private.Uri is indirect reference. It is needed to upgrade it directly to avoid https://github.com/advisories/GHSA-5f2m-466j-3848 -->
+    <PackageReference Include="System.Private.Uri" Version="4.3.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +40,7 @@
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Azure" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Container" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Host" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Resources.OperatingSystem" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.Process" />
     <TrimmerRootAssembly Include="OpenTelemetry.Resources.ProcessRuntime" />
     <TrimmerRootAssembly Include="OpenTelemetry.Sampler.AWS" />

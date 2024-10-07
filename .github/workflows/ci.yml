@@ -18,13 +18,14 @@ jobs:
       with:
         filters: |
           md: [ '**.md' ]
+          yml: [ '**.yml', '**.yaml', '.yamllint' ]
           build: ['build/**', '.github/**/*.yml', '!.github/workflows/package-*', '**/*.targets', '**/*.props']
           shared: ['src/Shared/**', 'test/Shared/**']
           contrib-shared-tests: ['test/OpenTelemetry.Contrib.Shared.Tests/**']
           code: ['**.cs', '**.csproj', '.editorconfig']
           aottestapp: ['test/OpenTelemetry.AotCompatibility.TestApp/**']
           exporter-geneva: ['*/OpenTelemetry.Exporter.Geneva*/**', '!**/*.md']
-          exporter-infuxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
+          exporter-influxdb: ['*/OpenTelemetry.Exporter.InfluxDB*/**', '!**/*.md']
           exporter-instana: ['*/OpenTelemetry.Exporter.Instana*/**', '!**/*.md']
           exporter-onecollector: ['*/OpenTelemetry.Exporter.OneCollector*/**', '!**/*.md']
           exporter-stackdriver: ['*/OpenTelemetry.Exporter.Stackdriver*/**', '!**/*.md']
@@ -36,6 +37,7 @@ jobs:
           instrumentation-aws: ['*/OpenTelemetry.Instrumentation.AWS/**', '*/OpenTelemetry.Instrumentation.AWS.Tests/**', '!**/*.md']
           instrumentation-aws-lambda: ['*/OpenTelemetry.Instrumentation.AWSLambda/**', '*/OpenTelemetry.Instrumentation.AWSLambda.Tests/**', '!**/*.md']
           instrumentation-cassandra: ['*/OpenTelemetry.Instrumentation.Cassandra*/**', '!**/*.md']
+          instrumentation-confluentkafka: ['*/OpenTelemetry.Instrumentation.ConfluentKafka*/**', 'examples/kafka/**', '!**/*.md']
           instrumentation-elasticsearchclient: ['*/OpenTelemetry.Instrumentation.ElasticsearchClient*/**', '!**/*.md']
           instrumentation-entityframeworkcore: ['*/OpenTelemetry.Instrumentation.EntityFrameworkCore*/**', '!**/*.md']
           instrumentation-eventcounters: ['*/OpenTelemetry.Instrumentation.EventCounters*/**', 'examples/event-counters/**', '!**/*.md']
@@ -56,6 +58,7 @@ jobs:
           resources-container: ['*/OpenTelemetry.Resources.Container*/**', '!**/*.md']
           resources-gcp: ['*/OpenTelemetry.Resources.Gcp*/**', '!**/*.md']
           resources-host: ['*/OpenTelemetry.Resources.Host*/**', '!**/*.md']
+          resources-operatingsystem: ['*/OpenTelemetry.Resources.OperatingSystem/**', '*/OpenTelemetry.Resources.OperatingSystem.Tests/**', '!**/*.md']
           resources-process: ['*/OpenTelemetry.Resources.Process/**', '*/OpenTelemetry.Resources.Process.Tests/**', '!**/*.md']
           resources-processruntime: ['*/OpenTelemetry.Resources.ProcessRuntime/**', '*/OpenTelemetry.Resources.ProcessRuntime.Tests/**', '!**/*.md']
           sampler-aws: ['*/OpenTelemetry.Sampler.AWS**/**', '!**/*.md']
@@ -67,6 +70,13 @@ jobs:
       contains(needs.detect-changes.outputs.changes, 'md')
       || contains(needs.detect-changes.outputs.changes, 'build')
     uses: ./.github/workflows/markdownlint.yml
+
+  lint-yml:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'yml')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+    uses: ./.github/workflows/yamllint.yml
 
   lint-dotnet-format:
     needs: detect-changes
@@ -186,7 +196,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.AspNetCore
       code-cov-name: Instrumentation.AspNetCore
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-aws:
     needs: detect-changes
@@ -209,7 +219,7 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.AWSLambda]
       code-cov-name: Instrumentation.AWSLambda
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-cassandra:
     needs: detect-changes
@@ -221,6 +231,27 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Instrumentation.Cassandra]
       code-cov-name: Instrumentation.Cassandra
+
+  build-test-instrumentation-confluentkafka:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Instrumentation.ConfluentKafka]
+      code-cov-name: Instrumentation.ConfluentKafka
+
+  build-test-instrumentation-confluentkafka-integration:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/integration.yml
+    with:
+      job: kafka-integration-test
 
   build-test-instrumentation-elasticsearchclient:
     needs: detect-changes
@@ -254,7 +285,7 @@ jobs:
     with:
       project-name: OpenTelemetry.Instrumentation.EventCounters
       code-cov-name: Instrumentation.EventCounters
-      tfm-list: '[ "net6.0", "net7.0", "net8.0" ]'
+      tfm-list: '[ "net8.0" ]'
 
   build-test-instrumentation-grpccore:
     needs: detect-changes
@@ -375,6 +406,8 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'build')
       || contains(needs.detect-changes.outputs.changes, 'shared')
     uses: ./.github/workflows/integration.yml
+    with:
+      job: redis-integration-test
 
   build-test-instrumentation-wcf:
     needs: detect-changes
@@ -452,6 +485,19 @@ jobs:
     with:
       project-name: Component[OpenTelemetry.Resources.Host]
       code-cov-name: Resources.Host
+      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
+
+  build-test-resources-operatingsystem:
+    needs: detect-changes
+    if: |
+      contains(needs.detect-changes.outputs.changes, 'resources-operatingsystem')
+      || contains(needs.detect-changes.outputs.changes, 'build')
+      || contains(needs.detect-changes.outputs.changes, 'shared')
+    uses: ./.github/workflows/Component.BuildTest.yml
+    with:
+      project-name: Component[OpenTelemetry.Resources.OperatingSystem]
+      code-cov-name: Resources.OperatingSystem
+      os-list: '[ "windows-latest", "ubuntu-latest", "macos-latest" ]'
 
   build-test-resources-process:
     needs: detect-changes
@@ -518,6 +564,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aspnetcore')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-aws')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-awslambda')
+      || contains(needs.detect-changes.outputs.changes, 'instrumentation-confluentkafka')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-eventcounters')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-grpcnetclient')
       || contains(needs.detect-changes.outputs.changes, 'instrumentation-http')
@@ -528,6 +575,7 @@ jobs:
       || contains(needs.detect-changes.outputs.changes, 'resources-azure')
       || contains(needs.detect-changes.outputs.changes, 'resources-container')
       || contains(needs.detect-changes.outputs.changes, 'resources-host')
+      || contains(needs.detect-changes.outputs.changes, 'resources-operatingsystem')
       || contains(needs.detect-changes.outputs.changes, 'resources-process')
       || contains(needs.detect-changes.outputs.changes, 'resources-processruntime')
       || contains(needs.detect-changes.outputs.changes, 'sampler-aws')
@@ -542,6 +590,7 @@ jobs:
       lint-misspell-sanitycheck,
       detect-changes,
       lint-md,
+      lint-yml,
       lint-dotnet-format,
       build-test-exporter-geneva,
       build-test-exporter-influxdb,
@@ -556,6 +605,7 @@ jobs:
       build-test-instrumentation-aws,
       build-test-instrumentation-awslambda,
       build-test-instrumentation-cassandra,
+      build-test-instrumentation-confluentkafka,
       build-test-instrumentation-elasticsearchclient,
       build-test-instrumentation-entityframeworkcore,
       build-test-instrumentation-eventcounters,
@@ -583,8 +633,9 @@ jobs:
       build-test-semanticconventions,
       build-test-contrib-shared-tests,
       verify-aot-compat
-      ]
-    if: always() && !cancelled() && !contains(needs.*.result, 'failure')
-    runs-on: windows-latest
+    ]
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
     steps:
-    - run: echo 'build complete ✓'
+    - run: |
+          if ( ${{ contains(needs.*.result, 'failure') }} == true ); then echo 'build failed ✗'; exit 1; else echo 'build complete ✓'; fi

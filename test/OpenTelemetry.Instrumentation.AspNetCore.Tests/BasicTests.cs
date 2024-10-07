@@ -738,7 +738,7 @@ public sealed class BasicTests
         Assert.Equal("Microsoft.AspNetCore.Hosting.HttpRequestIn", aspnetcoreframeworkactivity.OperationName);
     }
 
-#if NET7_0_OR_GREATER
+#if NET
     [Fact]
     public async Task UserRegisteredActivitySourceIsUsedForActivityCreationByAspNetCore()
     {
@@ -1150,7 +1150,7 @@ public sealed class BasicTests
     private static void ValidateAspNetCoreActivity(Activity activityToValidate, string expectedHttpPath)
     {
         Assert.Equal(ActivityKind.Server, activityToValidate.Kind);
-#if NET7_0_OR_GREATER
+#if NET
         Assert.Equal(HttpInListener.AspNetCoreActivitySourceName, activityToValidate.Source.Name);
         Assert.NotNull(activityToValidate.Source.Version);
         Assert.Empty(activityToValidate.Source.Version);
@@ -1220,12 +1220,7 @@ public sealed class BasicTests
 
         public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
         {
-            if (this.attributes != null)
-            {
-                return new SamplingResult(this.samplingDecision, this.attributes);
-            }
-
-            return new SamplingResult(this.samplingDecision);
+            return new SamplingResult(this.samplingDecision, this.attributes);
         }
     }
 

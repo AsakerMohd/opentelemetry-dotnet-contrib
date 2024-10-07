@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -14,19 +12,12 @@ namespace OpenTelemetry.Exporter.Geneva.Metrics;
 internal sealed class TlvMetricExporter : IDisposable
 {
     private readonly ushort prepopulatedDimensionsCount;
-
     private readonly int fixedPayloadStartIndex;
-
     private readonly IMetricDataTransport metricDataTransport;
-
     private readonly List<byte[]> serializedPrepopulatedDimensionsKeys;
-
     private readonly List<byte[]> serializedPrepopulatedDimensionsValues;
-
     private readonly byte[] buffer = new byte[GenevaMetricExporter.BufferSize];
-
     private readonly string defaultMonitoringAccount;
-
     private readonly string defaultMetricNamespace;
 
     private bool isDisposed;
@@ -52,12 +43,12 @@ internal sealed class TlvMetricExporter : IDisposable
                 }
 
                 var unixDomainSocketPath = connectionStringBuilder.ParseUnixDomainSocketPath();
-                this.metricDataTransport = new MetricUnixDataTransport(unixDomainSocketPath);
+                this.metricDataTransport = new MetricUnixDomainSocketDataTransport(unixDomainSocketPath);
                 break;
             case TransportProtocol.Unspecified:
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    this.metricDataTransport = MetricEtwDataTransport.Instance;
+                    this.metricDataTransport = MetricWindowsEventTracingDataTransport.Instance;
                     break;
                 }
                 else
@@ -66,12 +57,36 @@ internal sealed class TlvMetricExporter : IDisposable
                 }
 
             default:
-                throw new ArgumentOutOfRangeException(nameof(connectionStringBuilder.Protocol));
+                throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
         unsafe
         {
             this.fixedPayloadStartIndex = sizeof(BinaryHeader);
+        }
+    }
+
+    public void Dispose()
+    {
+        if (this.isDisposed)
+        {
+            return;
+        }
+
+        try
+        {
+            // The ETW data transport singleton on Windows should NOT be disposed.
+            // On Linux, Unix Domain Socket is used and should be disposed.
+            if (this.metricDataTransport != MetricWindowsEventTracingDataTransport.Instance)
+            {
+                this.metricDataTransport.Dispose();
+            }
+
+            this.isDisposed = true;
+        }
+        catch (Exception ex)
+        {
+            ExporterEventSource.Log.ExporterException("TlvMetricExporter Dispose failed.", ex);
         }
     }
 
@@ -226,30 +241,6 @@ internal sealed class TlvMetricExporter : IDisposable
         }
 
         return result;
-    }
-
-    public void Dispose()
-    {
-        if (this.isDisposed)
-        {
-            return;
-        }
-
-        try
-        {
-            // The ETW data transport singleton on Windows should NOT be disposed.
-            // On Linux, Unix Domain Socket is used and should be disposed.
-            if (this.metricDataTransport != MetricEtwDataTransport.Instance)
-            {
-                this.metricDataTransport.Dispose();
-            }
-
-            this.isDisposed = true;
-        }
-        catch (Exception ex)
-        {
-            ExporterEventSource.Log.ExporterException("TlvMetricExporter Dispose failed.", ex);
-        }
     }
 
     internal unsafe ushort SerializeMetricWithTLV(

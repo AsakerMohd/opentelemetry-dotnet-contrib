@@ -14,8 +14,8 @@ public static class AWSResourceBuilderExtensions
     /// <summary>
     /// Enables AWS Elastic Beanstalk resource detector.
     /// </summary>
-    /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
-    /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddAWSEBSDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
@@ -25,20 +25,20 @@ public static class AWSResourceBuilderExtensions
     /// <summary>
     /// Enables AWS EC2 resource detector.
     /// </summary>
-    /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
-    /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddAWSEC2Detector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
         return builder.AddDetector(new AWSEC2Detector());
     }
 
-#if !NETFRAMEWORK
+#if NET
     /// <summary>
     /// Enables AWS ECS resource detector.
     /// </summary>
-    /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
-    /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddAWSECSDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);
@@ -48,8 +48,8 @@ public static class AWSResourceBuilderExtensions
     /// <summary>
     /// Enables AWS EKS resource detector.
     /// </summary>
-    /// <param name="builder"><see cref="ResourceBuilder" /> being configured.</param>
-    /// <returns>The instance of <see cref="ResourceBuilder" /> being configured.</returns>
+    /// <param name="builder">The <see cref="ResourceBuilder"/> being configured.</param>
+    /// <returns>The instance of <see cref="ResourceBuilder"/> being configured.</returns>
     public static ResourceBuilder AddAWSEKSDetector(this ResourceBuilder builder)
     {
         Guard.ThrowIfNull(builder);

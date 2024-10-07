@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
@@ -18,7 +16,7 @@ internal static class TestsHelper
     /// Returns either <see cref="SqsRequestContextHelper.AddAttributes"/> or <see cref="SnsRequestContextHelper.AddAttributes"/>
     /// depending on <paramref name="serviceType"/>.
     /// <para />
-    /// This is meant to mimic thee logic in <see cref="AWSTracingPipelineHandler.AddRequestSpecificInformation"/>.
+    /// This is meant to mimic thee logic in <see cref="AWSPropagatorPipelineHandler.AddRequestSpecificInformation"/>.
     /// </summary>
     internal static Action<IRequestContext, IReadOnlyDictionary<string, string>>? CreateAddAttributesAction(string serviceType, IRequestContext context)
     {

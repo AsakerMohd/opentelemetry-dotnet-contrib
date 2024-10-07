@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using OpenTelemetry.Resources.Container.Utils;
 
@@ -155,7 +152,11 @@ internal sealed class ContainerDetector : IResourceDetector
                     {
                         containerId = GetIdFromLineV1(line);
                     }
+#if NET
                     else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname, StringComparison.Ordinal))
+#else
+                    else if (cgroupVersion == ParseMode.V2 && line.Contains(Hostname))
+#endif
                     {
                         containerId = GetIdFromLineV2(line);
                     }

@@ -1,10 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Amazon.Runtime.Internal.Transform;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Tools;
@@ -31,20 +27,28 @@ internal class HttpResponseMessageBody : IHttpResponseBody
 
     Stream IHttpResponseBody.OpenResponse()
     {
+#if NET
+        ObjectDisposedException.ThrowIf(this.disposed, this);
+#else
         if (this.disposed)
         {
             throw new ObjectDisposedException("HttpWebResponseBody");
         }
+#endif
 
         return this.response.Content.ReadAsStreamAsync().Result;
     }
 
     Task<Stream> IHttpResponseBody.OpenResponseAsync()
     {
+#if NET
+        ObjectDisposedException.ThrowIf(this.disposed, this);
+#else
         if (this.disposed)
         {
             throw new ObjectDisposedException("HttpWebResponseBody");
         }
+#endif
 
         if (this.response.Content != null)
         {

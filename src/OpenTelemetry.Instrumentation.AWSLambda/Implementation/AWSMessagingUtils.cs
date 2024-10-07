@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.Json;
 using Amazon.Lambda.SNSEvents;
 using Amazon.Lambda.SQSEvents;
@@ -127,8 +124,13 @@ internal class AWSMessagingUtils
 
         var body = sqsMessage.Body;
         if (body != null &&
+#if NET
             body.TrimStart().StartsWith('{') &&
             body.Contains(SnsMessageAttributes, StringComparison.Ordinal))
+#else
+            body.TrimStart().StartsWith("{", StringComparison.Ordinal) &&
+            body.Contains(SnsMessageAttributes))
+#endif
         {
             try
             {

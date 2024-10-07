@@ -1,14 +1,10 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 using Xunit;
 using Xunit.Abstractions;
@@ -19,7 +15,7 @@ public class LogSerializationTests
 {
     /*
     Run from the current directory:
-    dotnet test -f net6.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
+    dotnet test -f net8.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
     private readonly ITestOutputHelper output;
 
@@ -129,9 +125,8 @@ public class LogSerializationTests
             configureGeneva?.Invoke(exporterOptions);
 
             using var exporter = new MsgPackLogExporter(exporterOptions);
-            var m_buffer = typeof(MsgPackLogExporter).GetField("m_buffer", BindingFlags.NonPublic | BindingFlags.Static).GetValue(exporter) as ThreadLocal<byte[]>;
             _ = exporter.SerializeLogRecord(logRecordList[0]);
-            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(m_buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+            object fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(MsgPackLogExporter.Buffer.Value, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }

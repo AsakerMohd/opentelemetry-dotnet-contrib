@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported.
+  ([#2138](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2138))
+
+## 1.9.0
+
+Released 2024-Jun-17
+
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
 

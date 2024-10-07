@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported.
+  ([#2117](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2117))
+
+## 1.9.0
+
+Released 2024-Jun-21
+
+* Exemplars are now supported as a stable feature. Please note that
+  OpenTelemetry SDK has Exemplars disabled by default. Check [OpenTelemetry
+  Metrics
+  docs](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/docs/metrics/customizing-the-sdk#exemplars)
+  to learn how to enable them.
+
+## 1.9.0-rc.2
+
+Released 2024-Jun-17
+
 * Update GenevaTraceExporter to export `activity.TraceStateString` as the value
   for Part B `traceState` field for Spans when the `IncludeTraceStateForSpan`
   option is set to `true`. This is an opt-in feature and the default value is `false`.

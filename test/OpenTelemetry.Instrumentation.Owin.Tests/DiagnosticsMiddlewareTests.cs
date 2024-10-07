@@ -1,14 +1,11 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
 using Microsoft.Owin.Hosting;
 using OpenTelemetry.Instrumentation.Owin.Implementation;
@@ -198,12 +195,12 @@ public class DiagnosticsMiddlewareTests : IDisposable
                 Activity activity = stoppedActivities[0];
                 Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
-                Assert.Equal(requestUri.Host + ":" + requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpHost).Value);
-                Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpMethod).Value);
-                Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpTarget).Value);
-                Assert.Equal(requestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
+                Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+                Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+                Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+                Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
+                Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpResponseStatusCode).Value);
 
-                Assert.Equal(generateRemoteException ? 500 : 200, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpStatusCode).Value);
                 if (generateRemoteException)
                 {
                     Assert.Equal(Status.Error, activity.GetStatus());
@@ -251,13 +248,13 @@ public class DiagnosticsMiddlewareTests : IDisposable
             {
                 switch (tag.Key)
                 {
-                    case SemanticConventions.AttributeHttpMethod:
+                    case SemanticConventions.AttributeHttpRequestMethod:
                         Assert.Equal("GET", tag.Value);
                         break;
                     case SemanticConventions.AttributeHttpScheme:
                         Assert.Equal(requestUri.Scheme, tag.Value);
                         break;
-                    case SemanticConventions.AttributeHttpStatusCode:
+                    case SemanticConventions.AttributeHttpResponseStatusCode:
                         Assert.Equal(generateRemoteException ? 500 : 200, tag.Value);
                         break;
                 }
@@ -282,13 +279,18 @@ public class DiagnosticsMiddlewareTests : IDisposable
     }
 
     [Theory]
-    [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false)]
-    [InlineData("path?a=b&c=d", "path?a=b&c=d", true)]
-    public async Task QueryParametersAreRedacted(string actualPath, string expectedPath, bool disableQueryRedaction)
+    [InlineData("path?a=b&c=d", "path?a=Redacted&c=Redacted", false, false)]
+    [InlineData("path?a=b&c=d", "path?a=b&c=d", true, false)]
+    [InlineData("path?a=b&c=d", "path?a=b&c=d", false, true)]
+    public async Task QueryParametersAreRedacted(
+        string actualPath,
+        string expectedPath,
+        bool disableQueryRedactionUsingEnvVar,
+        bool disableQueryRedactionUsingConfiguration)
     {
         try
         {
-            if (disableQueryRedaction)
+            if (disableQueryRedactionUsingEnvVar)
             {
                 Environment.SetEnvironmentVariable("OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION", "true");
             }
@@ -296,6 +298,20 @@ public class DiagnosticsMiddlewareTests : IDisposable
             List<Activity> stoppedActivities = new List<Activity>();
 
             var builder = Sdk.CreateTracerProviderBuilder()
+                .ConfigureServices(services =>
+                {
+                    if (disableQueryRedactionUsingConfiguration)
+                    {
+                        var config = new ConfigurationBuilder()
+                            .AddInMemoryCollection(new Dictionary<string, string?>()
+                            {
+                                ["OTEL_DOTNET_EXPERIMENTAL_OWIN_DISABLE_URL_QUERY_REDACTION"] = "true",
+                            })
+                            .Build();
+
+                        services.AddSingleton<IConfiguration>(config);
+                    }
+                })
                 .AddInMemoryExporter(stoppedActivities)
                 .AddOwinInstrumentation()
                 .Build();
@@ -327,10 +343,10 @@ public class DiagnosticsMiddlewareTests : IDisposable
             Activity activity = stoppedActivities[0];
             Assert.Equal(OwinInstrumentationActivitySource.IncomingRequestActivityName, activity.OperationName);
 
-            Assert.Equal(requestUri.Host + ":" + requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpHost).Value);
-            Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpMethod).Value);
-            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpTarget).Value);
-            Assert.Equal(expectedRequestUri.ToString(), activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpUrl).Value);
+            Assert.Equal(requestUri.Host, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerAddress).Value);
+            Assert.Equal(requestUri.Port, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeServerPort).Value);
+            Assert.Equal("GET", activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeHttpRequestMethod).Value);
+            Assert.Equal(requestUri.AbsolutePath, activity.TagObjects.FirstOrDefault(t => t.Key == SemanticConventions.AttributeUrlPath).Value);
         }
         finally
         {

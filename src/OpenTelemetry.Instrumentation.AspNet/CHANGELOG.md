@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Updated registration extension code to retrieve environment variables through
+  `IConfiguration`.
+  ([#1976](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1976))
+
+## 1.9.0-beta.1
+
+Released 2024-Jun-18
+
 ## 1.8.0-beta.3
 
 Released 2024-May-23

@@ -201,18 +201,18 @@ function CreatePackageValidationBaselineVersionUpdatePullRequest {
     }
   }
 
-  $diabledTag = "<DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>"
+  $disabledTag = "<DisablePackageBaselineValidation>true</DisablePackageBaselineValidation>"
 
   $disabledProjects = Get-ChildItem -Path src/**/*.csproj |
     where { $_ | Select-String "<MinVerTagPrefix>$tagPrefix</MinVerTagPrefix>" } |
-    where { $_ | Select-String $diabledTag }
+    where { $_ | Select-String $disabledTag }
 
   if ($disabledProjects.Length -ne 0)
   {
     foreach ($project in $disabledProjects) {
       $content = (Get-Content $project -Raw)
 
-      $content = $content -replace $diabledTag, "<PackageValidationBaselineVersion>$version</PackageValidationBaselineVersion>"
+      $content = $content -replace $disabledTag, "<PackageValidationBaselineVersion>$version</PackageValidationBaselineVersion>"
 
       $content = $content -replace "<!--\s*?Do not run Package Baseline Validation[\S\s]*?-->\s*", ""
 
@@ -301,9 +301,24 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
     Return
   }
 
-  $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
-
   $branch="release/post-core-${version}-update"
+
+  if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
+  {
+    git config user.name $gitUserName
+  }
+  if ([string]::IsNullOrEmpty($gitUserEmail) -eq $false)
+  {
+    git config user.email $gitUserEmail
+  }
+
+  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
+  if ($LASTEXITCODE -gt 0)
+  {
+      throw 'git switch failure'
+  }
+
+  $projectsAndDependenciesBefore = GetCoreDependenciesForProjects
 
   (Get-Content build/Common.props) `
       -replace "<$propertyName>.*<\/$propertyName>", "<$propertyName>$propertyVersion</$propertyName>" |
@@ -326,21 +341,6 @@ function CreateOpenTelemetryCoreLatestVersionUpdatePullRequest {
           $changedProjects[$projectDir] = $true
       }
     }
-  }
-
-  if ([string]::IsNullOrEmpty($gitUserName) -eq $false)
-  {
-    git config user.name $gitUserName
-  }
-  if ([string]::IsNullOrEmpty($gitUserEmail) -eq $false)
-  {
-    git config user.email $gitUserEmail
-  }
-
-  git switch --create $branch origin/$targetBranch --no-track 2>&1 | % ToString
-  if ($LASTEXITCODE -gt 0)
-  {
-      throw 'git switch failure'
   }
 
   git add build/Common.props 2>&1 | % ToString

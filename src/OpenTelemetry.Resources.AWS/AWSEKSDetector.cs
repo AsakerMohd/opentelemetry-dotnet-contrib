@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
+#if NET
 using System.Text;
 using OpenTelemetry.Resources.AWS.Models;
 
@@ -65,7 +62,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
     {
         try
         {
-            var stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder("Bearer ");
 
             using (var streamReader = ResourceDetectorUtils.GetStreamReader(path))
             {
@@ -74,8 +71,6 @@ internal sealed class AWSEKSDetector : IResourceDetector
                     stringBuilder.Append(streamReader.ReadLine()?.Trim());
                 }
             }
-
-            stringBuilder.Insert(0, "Bearer ");
 
             return stringBuilder.ToString();
         }
@@ -113,7 +108,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
     internal static AWSEKSClusterInformationModel? DeserializeResponse(string response)
     {
-#if NET6_0_OR_GREATER
+#if NET
         return ResourceDetectorUtils.DeserializeFromString(response, SourceGenerationContext.Default.AWSEKSClusterInformationModel);
 #else
         return ResourceDetectorUtils.DeserializeFromString<AWSEKSClusterInformationModel>(response);
@@ -140,7 +135,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
         string? awsAuth = null;
         try
         {
-            awsAuth = ResourceDetectorUtils.SendOutRequest(AWSAuthUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
+            awsAuth = AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSAuthUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler));
         }
         catch (Exception ex)
         {
@@ -152,7 +147,7 @@ internal sealed class AWSEKSDetector : IResourceDetector
 
     private static string GetEKSClusterInfo(string credentials, HttpClientHandler? httpClientHandler)
     {
-        return ResourceDetectorUtils.SendOutRequest(AWSClusterInfoUrl, "GET", new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler).Result;
+        return AsyncHelper.RunSync(() => ResourceDetectorUtils.SendOutRequestAsync(AWSClusterInfoUrl, HttpMethod.Get, new KeyValuePair<string, string>("Authorization", credentials), httpClientHandler));
     }
 }
 #endif

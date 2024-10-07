@@ -1,5 +1,10 @@
 # Cassandra Instrumentation for OpenTelemetry
 
+| Status        |           |
+| ------------- |-----------|
+| Stability     |  [Beta](../../README.md#beta)|
+| Code Owners   |  [@xsoheilalizadeh](https://github.com/xsoheilalizadeh)|
+
 [![NuGet version badge](https://img.shields.io/nuget/v/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)
 [![NuGet download count badge](https://img.shields.io/nuget/dt/OpenTelemetry.Instrumentation.Cassandra)](https://www.nuget.org/packages/OpenTelemetry.Instrumentation.Cassandra)
 [![codecov.io](https://codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib/branch/main/graphs/badge.svg?flag=unittests-Instrumentation.Cassandra)](https://app.codecov.io/gh/open-telemetry/opentelemetry-dotnet-contrib?flags[0]=unittests-Instrumentation.Cassandra)
@@ -8,6 +13,11 @@ This is an
 [Instrumentation Library](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/glossary.md#instrumentation-library),
 which instruments [CassandraCSharpDriver](https://github.com/datastax/csharp-driver)
 and collects telemetry about cassandra metrics.
+
+> [!NOTE]
+> This package provides support for metrics only.
+  You can enable tracing using [`Cassandra.OpenTelemetry`](https://docs.datastax.com/en/developer/csharp-driver/3.22/features/opentelemetry/index.html)
+  package.
 
 ## Steps to enable OpenTelemetry.Instrumentation.Cassandra
 

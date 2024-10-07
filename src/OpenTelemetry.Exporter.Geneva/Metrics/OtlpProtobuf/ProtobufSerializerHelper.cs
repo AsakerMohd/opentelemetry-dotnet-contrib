@@ -1,7 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -12,11 +11,11 @@ internal static class ProtobufSerializerHelper
 {
     private const int Fixed64Size = 8;
 
-    internal static Encoding Utf8Encoding => Encoding.UTF8;
-
     private const ulong Ulong128 = 128;
 
     private const uint Uint128 = 128;
+
+    internal static Encoding Utf8Encoding => Encoding.UTF8;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static void WriteStringTag(byte[] buffer, ref int cursor, int fieldNumber, string value)

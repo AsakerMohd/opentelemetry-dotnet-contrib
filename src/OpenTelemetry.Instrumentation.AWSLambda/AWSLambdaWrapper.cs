@@ -1,11 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using OpenTelemetry.Instrumentation.AWSLambda.Implementation;
 using OpenTelemetry.Internal;
@@ -21,6 +17,8 @@ public static class AWSLambdaWrapper
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.AWSLambda";
 
     private static readonly ActivitySource AWSLambdaActivitySource = new(ActivitySourceName, typeof(AWSLambdaWrapper).Assembly.GetPackageVersion());
+
+    private static bool isColdStart = true;
 
     /// <summary>
     /// Gets or sets a value indicating whether AWS X-Ray propagation should be ignored. Default value is false.
@@ -164,7 +162,9 @@ public static class AWSLambdaWrapper
             }
         }
 
-        var functionTags = AWSLambdaUtils.GetFunctionTags(input, context);
+        // No parallel invocation of the same lambda handler expected.
+        var functionTags = AWSLambdaUtils.GetFunctionTags(input, context, isColdStart);
+        isColdStart = false;
         var httpTags = AWSLambdaHttpUtils.GetHttpTags(input);
 
         // We assume that functionTags and httpTags have no intersection.
@@ -173,6 +173,9 @@ public static class AWSLambdaWrapper
 
         return activity;
     }
+
+    // Use only for testing.
+    internal static void ResetColdStart() => isColdStart = true;
 
     private static void OnFunctionStop(Activity? activity, TracerProvider? tracerProvider)
     {

@@ -1,10 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -18,6 +15,7 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     internal static readonly TimeSpan DefaultTargetInterval = TimeSpan.FromSeconds(10);
 
     private static readonly Random Random = new Random();
+    private bool isFallBackEventToWriteSwitch = true;
 
     [SuppressMessage("Performance", "CA5394: Do not use insecure randomness", Justification = "Secure random is not required for jitters.")]
     internal AWSXRayRemoteSampler(Resource resource, TimeSpan pollingInterval, string endpoint, Clock clock)
@@ -85,10 +83,18 @@ public sealed class AWSXRayRemoteSampler : Trace.Sampler, IDisposable
     {
         if (this.RulesCache.Expired())
         {
-            AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
+            if (this.isFallBackEventToWriteSwitch)
+            {
+                this.isFallBackEventToWriteSwitch = false;
+
+                // could be expensive operation, conditionally call once
+                AWSSamplerEventSource.Log.InfoUsingFallbackSampler();
+            }
+
             return this.FallbackSampler.ShouldSample(in samplingParameters);
         }
 
+        this.isFallBackEventToWriteSwitch = true;
         return this.RulesCache.ShouldSample(in samplingParameters);
     }
 

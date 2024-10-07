@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Web;
@@ -28,6 +26,9 @@ internal static class ActivityHelper
     private static readonly ActivitySource AspNetSource = new(
         TelemetryHttpModule.AspNetSourceName,
         typeof(ActivityHelper).Assembly.GetPackageVersion());
+
+    [ThreadStatic]
+    private static KeyValuePair<string, object?>[]? cachedTagsStorage;
 
     /// <summary>
     /// Try to get the started <see cref="Activity"/> for the running <see
@@ -62,7 +63,24 @@ internal static class ActivityHelper
     {
         PropagationContext propagationContext = textMapPropagator.Extract(default, context.Request, HttpRequestHeaderValuesGetter);
 
-        Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext);
+        KeyValuePair<string, object?>[]? tags;
+        if (context.Request?.Unvalidated?.Path is string path)
+        {
+            tags = cachedTagsStorage ??= new KeyValuePair<string, object?>[1];
+
+            tags[0] = new KeyValuePair<string, object?>("url.path", path);
+        }
+        else
+        {
+            tags = null;
+        }
+
+        Activity? activity = AspNetSource.StartActivity(TelemetryHttpModule.AspNetActivityName, ActivityKind.Server, propagationContext.ActivityContext, tags);
+
+        if (tags is not null)
+        {
+            tags[0] = default;
+        }
 
         if (activity != null)
         {

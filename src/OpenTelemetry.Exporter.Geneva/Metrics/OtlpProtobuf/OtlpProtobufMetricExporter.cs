@@ -1,8 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -27,7 +25,7 @@ internal sealed class OtlpProtobufMetricExporter : IDisposable
 
         this.getResource = getResource;
 
-        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricEtwDataTransport.Instance, connectionStringBuilder, prepopulatedMetricDimensions);
+        this.otlpProtobufSerializer = new OtlpProtobufSerializer(MetricWindowsEventTracingDataTransport.Instance, connectionStringBuilder, prepopulatedMetricDimensions);
     }
 
     public ExportResult Export(in Batch<Metric> batch)

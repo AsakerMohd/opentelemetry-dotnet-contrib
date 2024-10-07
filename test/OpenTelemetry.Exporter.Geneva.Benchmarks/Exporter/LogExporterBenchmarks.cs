@@ -1,9 +1,9 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Exporter.Geneva.MsgPack;
 using OpenTelemetry.Logs;
 
 /*

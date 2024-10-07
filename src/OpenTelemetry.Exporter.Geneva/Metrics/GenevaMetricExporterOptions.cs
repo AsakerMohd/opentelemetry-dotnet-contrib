@@ -1,23 +1,26 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
-using System.Collections.Generic;
+#nullable enable
+
 using System.Globalization;
 using OpenTelemetry.Internal;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains Geneva metrics exporter options.
+/// </summary>
 public class GenevaMetricExporterOptions
 {
-    private IReadOnlyDictionary<string, object> _prepopulatedMetricDimensions;
-    private int _metricExporterIntervalMilliseconds = 60000;
+    private IReadOnlyDictionary<string, object>? prepopulatedMetricDimensions;
+    private int metricExporterIntervalMilliseconds = 60000;
 
     /// <summary>
     /// Gets or sets the ConnectionString which contains semicolon separated list of key-value pairs.
     /// For e.g.: "Account=OTelMonitoringAccount;Namespace=OTelMetricNamespace".
     /// </summary>
-    public string ConnectionString { get; set; }
+    public string? ConnectionString { get; set; }
 
     /// <summary>
     /// Gets or sets the metric export interval in milliseconds. The default value is 60000.
@@ -26,25 +29,25 @@ public class GenevaMetricExporterOptions
     {
         get
         {
-            return this._metricExporterIntervalMilliseconds;
+            return this.metricExporterIntervalMilliseconds;
         }
 
         set
         {
             Guard.ThrowIfOutOfRange(value, min: 1000);
 
-            this._metricExporterIntervalMilliseconds = value;
+            this.metricExporterIntervalMilliseconds = value;
         }
     }
 
     /// <summary>
     /// Gets or sets the pre-populated dimensions for all the metrics exported by the exporter.
     /// </summary>
-    public IReadOnlyDictionary<string, object> PrepopulatedMetricDimensions
+    public IReadOnlyDictionary<string, object>? PrepopulatedMetricDimensions
     {
         get
         {
-            return this._prepopulatedMetricDimensions;
+            return this.prepopulatedMetricDimensions;
         }
 
         set
@@ -66,12 +69,13 @@ public class GenevaMetricExporterOptions
                     throw new ArgumentException($"The dimension: {entry.Key} exceeds the maximum allowed limit of {GenevaMetricExporter.MaxDimensionNameSize} characters for a dimension name.");
                 }
 
-                if (entry.Value == null)
+                string? dimensionValue;
+                if (entry.Value == null
+                    || (dimensionValue = Convert.ToString(entry.Value, CultureInfo.InvariantCulture)) == null)
                 {
                     throw new ArgumentNullException($"{nameof(this.PrepopulatedMetricDimensions)}[\"{entry.Key}\"]");
                 }
 
-                var dimensionValue = Convert.ToString(entry.Value, CultureInfo.InvariantCulture);
                 if (dimensionValue.Length > GenevaMetricExporter.MaxDimensionValueSize)
                 {
                     throw new ArgumentException($"Value provided for the dimension: {entry.Key} exceeds the maximum allowed limit of {GenevaMetricExporter.MaxDimensionValueSize} characters for dimension value.");
@@ -80,7 +84,7 @@ public class GenevaMetricExporterOptions
                 copy[entry.Key] = entry.Value; // shallow copy
             }
 
-            this._prepopulatedMetricDimensions = copy;
+            this.prepopulatedMetricDimensions = copy;
         }
     }
 }

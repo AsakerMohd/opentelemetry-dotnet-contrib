@@ -2,8 +2,19 @@
 
 ## Unreleased
 
+* Drop support for .NET 6 as this target is no longer supported.
+  ([#2152](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2152))
+
+## 1.9.0
+
+Released 2024-Jun-17
+
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
+* Fix an issue where cancellation of an HTTP request via the Cancellation Token
+  would not set a description or an `error.type` on the activity
+  ([#1955](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1955))
 
 ## 1.8.1
 

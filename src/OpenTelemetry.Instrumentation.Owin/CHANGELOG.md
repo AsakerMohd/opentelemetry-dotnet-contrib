@@ -2,8 +2,22 @@
 
 ## Unreleased
 
+* Updated activity tags to use new
+  [semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.27.0/docs/http/http-spans.md)
+  attribute schema.
+  ([#2028](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/2028))
+
 * Updated OpenTelemetry core component version(s) to `1.9.0`.
   ([#1888](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1888))
+
+* Updated registration extension code to retrieve environment variables through
+  `IConfiguration`.
+  ([#1973](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1973))
+
+* **Breaking change** Updated to depend on the
+  `OpenTelemetry.Api.ProviderBuilderExtensions` (API) package instead of the
+  `OpenTelemetry` (SDK) package.
+  ([#1977](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/1977))
 
 ## 1.0.0-rc.6
 

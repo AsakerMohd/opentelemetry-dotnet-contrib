@@ -1,10 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-using System;
+#nullable enable
 
 namespace OpenTelemetry.Exporter.Geneva;
 
+/// <summary>
+/// Contains the event name export mode defintions.
+/// </summary>
 [Flags]
 public enum EventNameExportMode
 {
